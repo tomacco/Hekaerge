@@ -15,7 +15,7 @@ Current location is fetched **only** via bluetooth beacons, specifically, by the
 ###Getting the sorted array
 
 - There are two methods to get a sorted array of locations:
-	-  One is **synchronous** method. The first time you instantiate `Hekaerge`, you can try to get a sorted array by calling `getOrderedLocations` just after `Hekaerge` is instantiated for the first time. It will check if there are beacons in range, if there are it will return a sorted array based on the current position. If bluetooth is off, or no beacons are in range, the locations will be get in the same order you provided them to `Hekaerge`
+	-  One is a **synchronous** method. The first time you instantiate `Hekaerge`, you can try to get a sorted array by calling `getOrderedLocations` just after `Hekaerge` is instantiated for the first time. It will check if there are beacons in range, if there are it will return a sorted array based on the current position. If bluetooth is off, or no beacons are in range, the locations will be get in the same order you provided them to `Hekaerge`
 	- Async method; callback via delegation. When the device enters in range of a beacon, MOCA SDK reports it to `Hekaerge` and it, in turn, will return the sorted array to your delegate. Just remember to have a strong reference to your `Hekaerge` instance.
 
 - `Hekaerge` takes account of the radius of the location to measure the distance. As buildings are not circles, you can increase the confidence by creating multiple `HekaergeLocation`s for a building.
