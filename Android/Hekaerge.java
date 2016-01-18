@@ -45,7 +45,7 @@ public class Hekaerge implements MOCAProximityService.EventListener {
     private void orderListForLocation(@Nullable HkLocation location) {
         if(location == null){
             //reset to default
-            mLastOrderedListLocations = getDefaultLocations();
+            mLastOrderedListLocations = new ArrayList<>(mDefaultLocations);
         }
         else{
             Collections.sort(mLastOrderedListLocations, new GeoComparator(location));
@@ -79,6 +79,24 @@ public class Hekaerge implements MOCAProximityService.EventListener {
                 beaconLoc.getLatitude(), beaconLoc.getLongitude(), b.getFloor(), 0.0);
     }
 
+    /**
+     * Adds a beacon to the beacons in Range only if it has a valid location
+     * @param beacon to be added
+     * @return true if is valid, false otherwise
+     */
+    private boolean addBeacon(@NonNull MOCABeacon beacon){
+        if(beacon.getLocation() != null){
+            Location bLoc = beacon.getLocation();
+            double lat = bLoc.getLatitude();
+            double lon = bLoc.getLongitude();
+            if(lon != 0 && lat != 0){
+                mBeaconsInRange.add(beacon);
+                return true;
+            }
+        }
+        return false;
+    }
+
     //API
 
     @NonNull
@@ -103,23 +121,7 @@ public class Hekaerge implements MOCAProximityService.EventListener {
         return mDefaultLocations;
     }
 
-    /**
-     * Adds a beacon to the beacons in Range only if it has a valid location
-     * @param beacon to be added
-     * @return true if is valid, false otherwise
-     */
-    private boolean addBeacon(@NonNull MOCABeacon beacon){
-        if(beacon.getLocation() != null){
-            Location bLoc = beacon.getLocation();
-            double lat = bLoc.getLatitude();
-            double lon = bLoc.getLongitude();
-            if(lon != 0 && lat != 0){
-                mBeaconsInRange.add(beacon);
-                return true;
-            }
-        }
-        return false;
-    }
+    //-------------------
 
     @Override
     public void didEnterRange(@NonNull MOCABeacon beacon, MOCAProximity proximity) {
