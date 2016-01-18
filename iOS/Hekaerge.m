@@ -1,5 +1,5 @@
 //
-//  Hekaerge.m v1.0.0
+//  Hekaerge.m v1.0.2
 //  MocaApp
 //
 //  Created by Iván González on 8/1/16.
@@ -69,11 +69,11 @@
 
 @interface Hekaerge()
 {
-    CBCentralManager        * _bluetoothManager;
-    CBCentralManagerState   _bleStatus;
-    NSMutableArray          * _lastOrderedLocations;
-    NSArray                 * _defaultLocations;
-    NSMutableArray<MOCABeacon*>    * _beaconsInRange;
+    CBCentralManager                * _bluetoothManager;
+    CBCentralManagerState           _bleStatus;
+    NSMutableArray                  * _lastOrderedLocations;
+    NSArray                         * _defaultLocations;
+    NSMutableArray<MOCABeacon*>     * _beaconsInRange;
 }
 @end
 
@@ -184,19 +184,20 @@
     
     for (MOCABeacon *b in beacons){
         if ([b proximity] != CLProximityUnknown && [b location] != nil) {
-            [_beaconsInRange addObject:b];
-            int radius = 0; //immediate
-            if ([b proximity] == CLProximityFar) {
-                radius = 20;
+            if([self addBeacon:b]){
+                int radius = 0; //immediate
+                if ([b proximity] == CLProximityFar) {
+                    radius = 20;
+                }
+                else if([b proximity] == CLProximityNear){
+                    radius = 5;
+                }
+                
+                return [[HekaergeLocation alloc]    initWithId:b.identifier
+                                                  withLocation:b.location.coordinate
+                                                         floor:[b.floor doubleValue]
+                                                        radius:radius];
             }
-            else if([b proximity] == CLProximityNear){
-                radius = 5;
-            }
-            
-            return [[HekaergeLocation alloc]    initWithId:b.identifier
-                                              withLocation:b.location.coordinate
-                                                     floor:[b.floor doubleValue]
-                                                    radius:radius];
         }
     }
     
@@ -240,39 +241,42 @@
           didEnterRange:(MOCABeacon *)beacon
           withProximity:(CLProximity)proximity{
     
-    [_beaconsInRange addObject:beacon];
-    
-    _beaconsInRange = [[NSMutableArray alloc]initWithArray:[_beaconsInRange sortedArrayUsingComparator:^(MOCABeacon* beacon1, MOCABeacon* beacon2){
-        if(beacon1.proximity == 0 ^ beacon2.proximity == 0){
-            if(beacon1.proximity != 0){
-                return NSOrderedAscending;
+    if([self addBeacon:beacon]){
+        _beaconsInRange = [[NSMutableArray alloc]initWithArray:[_beaconsInRange sortedArrayUsingComparator:^(MOCABeacon* beacon1, MOCABeacon* beacon2){
+            if(beacon1.proximity == 0 ^ beacon2.proximity == 0){
+                if(beacon1.proximity != 0){
+                    return NSOrderedAscending;
+                }
+                return NSOrderedDescending;
             }
-            return NSOrderedDescending;
-        }
-        if(beacon1.proximity < beacon2.proximity){
-            return NSOrderedAscending; //1 is closer
-        }
-        if(beacon2.proximity < beacon1.proximity){
-            return NSOrderedDescending; //2 is closer
-        }
-        return NSOrderedSame;
-    }]];
-
-    [self orderListForLocation: [self hekaergeLocationForBeacon:[_beaconsInRange objectAtIndex:0]]];
+            if(beacon1.proximity < beacon2.proximity){
+                return NSOrderedAscending; //1 is closer
+            }
+            if(beacon2.proximity < beacon1.proximity){
+                return NSOrderedDescending; //2 is closer
+            }
+            return NSOrderedSame;
+        }]];
+        
+        [self orderListForLocation: [self hekaergeLocationForBeacon:[_beaconsInRange objectAtIndex:0]]];
+    }
 }
 
 
 -(void)proximityService:(MOCAProximityService*)service
            didExitRange:(MOCABeacon *)beacon
 {
-    if([_beaconsInRange containsObject:beacon]){
-        [_beaconsInRange removeObjectIdenticalTo:beacon];
-    }
-    if([_beaconsInRange count] == 0){
-        [self orderListForLocation: nil];
-    }
-    else{
-        [self orderListForLocation: [self hekaergeLocationForBeacon:[_beaconsInRange objectAtIndex:0]]];
+    for(MOCABeacon* b in _beaconsInRange){
+        if(beacon.identifier == b.identifier){
+            [_beaconsInRange removeObjectIdenticalTo:beacon];
+            if([_beaconsInRange count] == 0){
+                [self orderListForLocation: nil];
+            }
+            else{
+                [self orderListForLocation: [self hekaergeLocationForBeacon:[_beaconsInRange objectAtIndex:0]]];
+            }
+            return;
+        }
     }
 }
 
@@ -294,6 +298,21 @@
         }
     }
 }
+
+-(BOOL) addBeacon: (MOCABeacon*) beacon
+{
+    if(beacon.location != nil){
+        CLLocationCoordinate2D bLoc = beacon.location.coordinate;
+        double lat = bLoc.latitude;
+        double lon = bLoc.longitude;
+        if(lon != 0 && lat != 0){
+            [_beaconsInRange addObject:beacon];
+            return YES;
+        }
+    }
+    return NO;
+}
+
 
 #pragma mark - CBCentralManagerDelegate
 
