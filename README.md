@@ -6,7 +6,11 @@ Current location is fetched **only** via bluetooth beacons, specifically, by the
 
 ###Initializing a Hekaerge object
 
+####iOS
 `- (instancetype)initWithLocations: (NSArray<HekaergeLocation *> *) locations`
+
+####Android
+` mHk = new Hekaerge(locations);`
 
 ####Parameters
 
@@ -50,7 +54,9 @@ Any improvement you want to make in this module is more than welcome! 😄
 
 Sample Code:
 
-```
+##iOS
+
+```objective-c
 @interface MyClass()
 {
     Hekaerge  * _go;
@@ -99,3 +105,54 @@ Sample Code:
 }
 
 ```
+
+##Android
+
+```java
+public class MyClass implements HekaergeListener {
+
+    private Hekaerge mHk;
+
+    ....
+    private void hekaergeTest() {
+        HkLocation hall1 = new HkLocation("hall1",41.353485,2.129052,0,64.0);
+        HkLocation hall2 = new HkLocation("hall2",41.355149,2.131131,0,55.0);
+        HkLocation hall3 = new HkLocation("hall3",41.355028,2.131205,0,49.0);
+        HkLocation hall4 = new HkLocation("hall4",41.354753,2.13336,0,50.0);
+        HkLocation hall5 = new HkLocation("hall5",41.356697,2.132073,0,50.0);
+        HkLocation hall6 = new HkLocation("hall6",41.355234,2.134667,0,50.0);
+        HkLocation hall7 = new HkLocation("hall7",41.357155,2.133298,0,50.0);
+        HkLocation hall8 = new HkLocation("hall8",41.3559,2.136817,0,105.0);
+        HkLocation hall81 = new HkLocation("hall81",41.3559,2.136817,1,105.0);
+
+        ArrayList<HkLocation> locations = new  ArrayList<HkLocation>();
+        locations.add(hall1);
+        locations.add(hall2);
+        locations.add(hall3);
+        locations.add(hall4);
+        locations.add(hall5);
+        locations.add(hall6);
+        locations.add(hall7);
+        locations.add(hall8);
+        locations.add(hall81);
+
+        mHk = new Hekaerge(locations);
+        mHk.setLocationChangeListener(this);
+        //Force first sync
+        this.locationDidChange(mHk.getDefaultLocations());
+    }
+
+    @Override
+    public void locationDidChange(List<HkLocation> locations) {
+        int i = 0;
+        for(HkLocation loc : locations){
+            Log.i("Hekaerge", i++ + "]" + loc.getId());
+        }
+        Log.i("Hekaerge", "---------------------");
+
+    }
+    ...
+}
+```
+
+
