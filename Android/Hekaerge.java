@@ -19,8 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Created by Ivan on 7/1/16.
- * InnoQuant 2016
+ * v2.0.0
  */
 public class Hekaerge implements MOCAProximityService.EventListener {
     final private String TAG = "Hekaerge";
@@ -32,7 +31,6 @@ public class Hekaerge implements MOCAProximityService.EventListener {
     private List<MOCABeacon> mBeaconsInRange = new ArrayList<>();
     public Hekaerge(@NonNull List<HkLocation> locations) {
         mDefaultLocations = new ArrayList<>(locations);
-        mLastOrderedListLocations = locations;
         MOCA.getProximityService().setEventListener(this);
         this.getLastKnownLocationByBeacons();
     }
@@ -45,9 +43,10 @@ public class Hekaerge implements MOCAProximityService.EventListener {
     private void orderListForLocation(@Nullable HkLocation location) {
         if(location == null){
             //reset to default
-            mLastOrderedListLocations = new ArrayList<>(mDefaultLocations);
+            mLastOrderedListLocations = null;
         }
         else{
+            mLastOrderedListLocations = new ArrayList<>(mDefaultLocations);
             Collections.sort(mLastOrderedListLocations, new GeoComparator(location));
         }
         this.callListener();
@@ -104,7 +103,7 @@ public class Hekaerge implements MOCAProximityService.EventListener {
         if (this.isBluetoothOn()) {
             orderListForLocation(getLastKnownLocationByBeacons());
         }
-        return mDefaultLocations; //send defaultLocations if bluetooth is off
+        return null; //return null if bluetooth is off
     }
 
     public boolean isBluetoothOn() {

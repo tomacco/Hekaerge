@@ -3,6 +3,12 @@ A module to sort locations by *tomacco*
 
 - the `Hekaerge` Class allows you to mantain a list of geo locations (`HekaergeLocation`) objects sorted by distance to your current location. 
 Current location is fetched **only** via bluetooth beacons, specifically, by the beacons supported by [MOCA Platform](http://mocaplatform.com) Mobile SDKs
+- This module uses SemVer
+
+##V2.0.0
+**API CHANGE**
+`Heakerge` will no longer return the default list when there is not possible to sort it. Instead, now it will return a null / nil list.
+Thank you @luvacu and @Ereza for the suggestion!
 
 ###Initializing a Hekaerge object
 
@@ -19,8 +25,8 @@ Current location is fetched **only** via bluetooth beacons, specifically, by the
 ###Getting the sorted array
 
 - There are two methods to get a sorted array of locations:
-	-  One is a **synchronous** method. The first time you instantiate `Hekaerge`, you can try to get a sorted array by calling `getOrderedLocations` just after `Hekaerge` is instantiated for the first time. It will check if there are beacons in range, if there are it will return a sorted array based on the current position. If bluetooth is off, or no beacons are in range, the locations will be get in the same order you provided them to `Hekaerge`
-	- Async method; callback via delegation. When the device enters in range of a beacon, MOCA SDK reports it to `Hekaerge` and it, in turn, will return the sorted array to your delegate. Just remember to have a strong reference to your `Hekaerge` instance.
+	-  One is a **synchronous** method. The first time you instantiate `Hekaerge`, you can try to get a sorted array by calling `getOrderedLocations` just after `Hekaerge` is instantiated for the first time. It will check if there are beacons in range, if there are it will return a sorted array based on the current position. If bluetooth is off, or no beacons are in range, `Heakerge` will return a *null*/*nil* list.
+	- Async method; callback via delegation. When the device enters in range of a beacon, MOCA SDK reports it to `Hekaerge` and it, in turn, will return the sorted array to your delegate. If no beacons are in range anymore, it will return a *null*/*nil* list. Just remember to have a strong reference to your `Hekaerge` instance.
 
 - `Hekaerge` takes account of the radius of the location to measure the distance. As buildings are not circles, you can increase the confidence by creating multiple `HekaergeLocation`s for a building.
 
@@ -90,18 +96,23 @@ Sample Code:
     _go = [[Hekaerge alloc] initWithLocations:locs];
     _go.delegate = self;
     
-    NSLog(@"🔴forcing sync...");
+    NSLog(@"🔴Show initial data...");
     //Forcing first sync with existing data
     [self didChangeLocation:[_go getDefaultLocations]];
-
+    
 }
 
 -(void) didChangeLocation:(NSArray *)locations
 {
     int i = 0;
+    if(locations == nil) {
+        NSLog(@"🔵 unknown positions");
+    }
     for(HekaergeLocation* loc in locations){
         NSLog(@"[%i]🔵 %@", ++i, loc.identifier);
     }
+    NSLog(@"🔶 ========");
+
 }
 
 ```
@@ -125,7 +136,7 @@ public class MyClass implements HekaergeListener {
         HkLocation hall8 = new HkLocation("hall8",41.3559,2.136817,0,105.0);
         HkLocation hall81 = new HkLocation("hall81",41.3559,2.136817,1,105.0);
 
-        ArrayList<HkLocation> locations = new  ArrayList<HkLocation>();
+        ArrayList<HkLocation> locations = new ArrayList<HkLocation>();
         locations.add(hall1);
         locations.add(hall2);
         locations.add(hall3);
@@ -145,6 +156,10 @@ public class MyClass implements HekaergeListener {
     @Override
     public void locationDidChange(List<HkLocation> locations) {
         int i = 0;
+        if(locations == null){
+            Log.i("Hekaerge", "unknown locations");
+            return;
+        }
         for(HkLocation loc : locations){
             Log.i("Hekaerge", i++ + "]" + loc.getId());
         }

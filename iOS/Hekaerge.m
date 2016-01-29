@@ -1,5 +1,5 @@
 //
-//  Hekaerge.m v1.0.2
+//  Hekaerge.m v2.0.0
 //  MocaApp
 //
 //  Created by Iván González on 8/1/16.
@@ -88,7 +88,7 @@
     self = [super init];
     if(self){
         _defaultLocations = [[NSArray alloc] initWithArray:locations];
-        _lastOrderedLocations = [[NSMutableArray alloc] initWithArray: locations];
+        _lastOrderedLocations = nil;
     }
     _bluetoothManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil
                                                   options:@{CBCentralManagerOptionShowPowerAlertKey:[NSNumber numberWithBool:NO]}];
@@ -124,10 +124,10 @@
  */
 - (void) orderListForLocation: (HekaergeLocation*) location{
     if (location == nil) {
-        _lastOrderedLocations = [_defaultLocations copy];
+        _lastOrderedLocations = nil;
     }else
     {
-        _lastOrderedLocations = [[NSMutableArray alloc] initWithArray:[_lastOrderedLocations sortedArrayUsingComparator:^(HekaergeLocation* loc1, HekaergeLocation* loc2) {
+        _lastOrderedLocations = [[NSMutableArray alloc] initWithArray:[_defaultLocations sortedArrayUsingComparator:^(HekaergeLocation* loc1, HekaergeLocation* loc2) {
             
             //Use CLLocation built in distance calculator
             CLLocation * currLoc = [[CLLocation alloc] initWithLatitude:location.latitude longitude:location.longitude];
@@ -219,7 +219,7 @@
     if(_bleStatus == CBCentralManagerStatePoweredOn){
         return _lastOrderedLocations;
     }
-    return _defaultLocations;
+    return nil;
 }
 
 /*
@@ -283,10 +283,15 @@
 #pragma mark - Utils
 
 -(HekaergeLocation*) hekaergeLocationForBeacon: (MOCABeacon*) beacon{
+    //SDK Backwards compatibility
+    double flr = 0;
+    if(![beacon.floor isKindOfClass:[NSNull class]]){
+        flr = [beacon.floor doubleValue];
+    }
     CLLocationCoordinate2D beaconCoord = beacon.location.coordinate;
     return [[HekaergeLocation alloc] initWithId:beacon.identifier
                                    withLocation:beaconCoord
-                                          floor:[beacon.floor doubleValue]
+                                          floor:flr
                                          radius:0];
 }
 
