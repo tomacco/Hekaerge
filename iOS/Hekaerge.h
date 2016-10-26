@@ -6,45 +6,34 @@
 //  Copyright © 2016 InnoQuant. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-#import "MOCAProximityDelegate.h"
-#import <CoreBluetooth/CoreBluetooth.h>
+@import Foundation;
 
-@interface HekaergeLocation : NSObject
+@class Hekaerge;
+@class HekaergeLocation;
 
-@property (readonly) NSString * identifier;
-@property (readonly) CLLocationCoordinate2D center;
-@property (readonly) int floor;
-@property (readonly) double latitude;
-@property (readonly) double longitude;
-@property (readonly) double radius;
-
-
-
--(instancetype)initWithId:(NSString*)identifier
-             withLocation:(CLLocationCoordinate2D)center
-                    floor:(int)floor
-                   radius:(double)radius;
-
--(instancetype)initWithId:(NSString*)identifier
-                 latitude:(double)latitude
-                longitide:(double)longitude
-                    floor:(int)floor
-                   radius:(double)radius;
-@end
 
 @protocol HekaergeDelegate <NSObject>
 
-- (void) didChangeLocation: (NSArray*) locations;
+- (void)hekaerge:(Hekaerge *)hekaerge didChangeLocation:(NSArray<HekaergeLocation *> *)locations;
 
 @end
 
-@interface Hekaerge : NSObject <MOCAProximityEventsDelegate, CBCentralManagerDelegate>
 
-@property id<HekaergeDelegate> delegate;
+@interface Hekaerge : NSObject
 
-- (instancetype)initWithLocations: (NSArray<CLLocation *> *) locations;
-- (NSArray * ) getOrderedLocations;
-- (NSArray *) getDefaultLocations;
+/*
+ * Locations with the default order.
+ */
+@property (strong, nonatomic, readonly) NSArray<HekaergeLocation *> *defaultLocations;
+
+/*
+ * If bluetooth is on, and a beacon (with Location) is in range, the locations list
+ * will be sorted by beacon distance
+ */
+@property (strong, nonatomic, readonly) NSArray<HekaergeLocation *> *orderedLocations;
+
+@property (weak, nonatomic) id<HekaergeDelegate> delegate;
+
+- (instancetype)initWithLocations:(NSArray<HekaergeLocation *> *)locations;
 
 @end
